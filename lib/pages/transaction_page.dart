@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mymoney/models/database.dart';
 import 'package:mymoney/models/transaction_with_category.dart';
+import 'package:mymoney/pages/landing_page.dart';
+import 'package:mymoney/pages/main_page.dart';
 
 class TransactionPage extends StatefulWidget {
   final TransactionWithCategory? transactionWithCategory;
@@ -98,16 +100,26 @@ class _TransactionPageState extends State<TransactionPage> {
             ),
           );
       print('Inserted row id: $row');
-      Navigator.pop(context);
-      // In insertTransaction method
+
+      // Tampilkan snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Transaction added successfully!'),
-          backgroundColor: Colors.green, // Updated to green
+          backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           elevation: 0,
         ),
       );
+
+      // Navigasi ke LandingPage
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LandingPage(
+              duration: const Duration(milliseconds: 2000),
+              nextRoute: MaterialPageRoute(builder: (context) => MainPage()),
+            ),
+          ));
     } catch (e) {
       print('Error inserting transaction: $e');
     }
@@ -132,6 +144,15 @@ class _TransactionPageState extends State<TransactionPage> {
           elevation: 0,
         ),
       );
+      // Navigasi ke LandingPage
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LandingPage(
+              duration: const Duration(milliseconds: 2000),
+              nextRoute: MaterialPageRoute(builder: (context) => MainPage()),
+            ),
+          ));
     } catch (e) {
       print('Error updating transaction: $e');
     }

@@ -21,7 +21,6 @@ def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
-
 android {
     namespace "com.example.mymoney"
     compileSdk flutter.compileSdkVersion
@@ -36,15 +35,21 @@ android {
         jvmTarget = '1.8'
     }
 
+    signingConfigs {
+        release {
+            storeFile file("C:\\Users\\T0MM11Y\\Documents\\OurProject\\MoneyManagement\\mymoney\\android\\release-key.jks")
+            storePassword "Tomm#4145"
+            keyAlias "Tian Yehezkil"
+            keyPassword "Tomm#4145"
+        }
+    }
+
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.example.mymoney"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
@@ -53,9 +58,8 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
+            
         }
     }
 }

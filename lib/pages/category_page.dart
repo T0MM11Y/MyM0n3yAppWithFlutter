@@ -94,7 +94,9 @@ class _CategoryPageState extends State<CategoryPage> {
           title: Text((isExpense) ? "Add Expense" : "Add Income",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: (isExpense) ? Colors.red : Colors.green,
+                color: (isExpense)
+                    ? const Color.fromARGB(255, 227, 119, 119)
+                    : Colors.green,
                 fontSize: 20,
               )),
           content: SingleChildScrollView(
@@ -216,7 +218,9 @@ class _CategoryPageState extends State<CategoryPage> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: isExpense ? Colors.red[900] : Colors.green[900],
+                    color: isExpense
+                        ? const Color.fromARGB(255, 227, 119, 119)
+                        : Colors.green[900],
                   ),
                 ),
                 Spacer(),
@@ -299,7 +303,8 @@ class _CategoryPageState extends State<CategoryPage> {
                             style: TextStyle(color: Colors.white)),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.white,
-                          backgroundColor: Colors.red,
+                          backgroundColor:
+                              const Color.fromARGB(255, 227, 119, 119),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -310,7 +315,8 @@ class _CategoryPageState extends State<CategoryPage> {
                 },
               );
             },
-            icon: Icon(Icons.delete, color: Colors.red),
+            icon: Icon(Icons.delete,
+                color: const Color.fromARGB(255, 227, 119, 119)),
             tooltip: 'Delete',
           ),
         ],

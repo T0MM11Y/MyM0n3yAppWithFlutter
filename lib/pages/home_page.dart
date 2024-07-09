@@ -22,14 +22,19 @@ class _HomePageState extends State<HomePage> {
   void _calculateTotals(List<TransactionWithCategory> transactions) {
     double income = 0;
     double expense = 0;
-
-    for (var transaction in transactions) {
-      if (transaction.category.type == 1) {
-        income += transaction.transaction.amount;
-      } else {
-        expense += transaction.transaction.amount;
+    // Filter transactions for the selected month
+    transactions.forEach((transaction) {
+      if (transaction.transaction.transactionDate.month ==
+              widget.selectedDate.month &&
+          transaction.transaction.transactionDate.year ==
+              widget.selectedDate.year) {
+        if (transaction.category.type == 1) {
+          income += transaction.transaction.amount;
+        } else {
+          expense += transaction.transaction.amount;
+        }
       }
-    }
+    });
 
     totalIncome.value = income;
     totalExpense.value = expense;
@@ -52,9 +57,22 @@ class _HomePageState extends State<HomePage> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator());
             } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+              // Calculate totals for income and expense
               _calculateTotals(snapshot.data!);
 
-              // Aggregate transactions by category type
+              // Filter transactions for the selected date
+              List<TransactionWithCategory> selectedDateTransactions = snapshot
+                  .data!
+                  .where((transaction) =>
+                      transaction.transaction.transactionDate.day ==
+                          widget.selectedDate.day &&
+                      transaction.transaction.transactionDate.month ==
+                          widget.selectedDate.month &&
+                      transaction.transaction.transactionDate.year ==
+                          widget.selectedDate.year)
+                  .toList();
+
+              // Hitung total transaksi per kategori
               Map<int, double> categoryTotals = {};
               for (var transaction in snapshot.data!) {
                 if (categoryTotals.containsKey(transaction.category.type)) {
@@ -67,131 +85,34 @@ class _HomePageState extends State<HomePage> {
                 }
               }
 
+              // Buat data untuk BarChart
               List<BarChartGroupData> chartData =
                   categoryTotals.entries.map((entry) {
                 return BarChartGroupData(
                   x: entry.key,
                   barRods: [
                     BarChartRodData(
-                        y: entry.key == 1 ? entry.value.toDouble() : 0,
-                        colors: [Colors.green]),
+                      toY: entry.key == 1 ? entry.value.toDouble() : 0,
+                      color: const Color.fromARGB(255, 113, 182, 115),
+                    ),
                     BarChartRodData(
-                        y: entry.key == 0 ? entry.value.toDouble() : 0,
-                        colors: [Colors.red]),
+                      toY: entry.key == 0 ? entry.value.toDouble() : 0,
+                      color: const Color.fromARGB(255, 227, 119, 119),
+                    ),
                   ],
                 );
               }).toList();
 
-              // Filter transactions by selected date
-              List<TransactionWithCategory> transactionsForSelectedDate =
-                  snapshot.data!.where((transaction) {
-                return transaction.transaction.transactionDate.day ==
-                    widget.selectedDate.day;
-              }).toList();
-
               return CustomScrollView(
                 slivers: [
-                  // Chart data
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
-                        height: 300,
-                        child: BarChart(
-                          BarChartData(
-                            alignment: BarChartAlignment.spaceAround,
-                            maxY: 1000000,
-                            groupsSpace: 20,
-                            titlesData: FlTitlesData(
-                              show: true,
-                              bottomTitles: SideTitles(
-                                showTitles: true,
-                                getTextStyles:
-                                    (BuildContext context, double value) =>
-                                        const TextStyle(
-                                  color: Color.fromARGB(255, 38, 155, 153),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                                margin: 20,
-                                getTitles: (double value) {
-                                  if (value.toInt() == 0) {
-                                    return 'Expense';
-                                  } else if (value.toInt() == 1) {
-                                    return 'Income';
-                                  } else {
-                                    return '';
-                                  }
-                                },
-                              ),
-                              leftTitles: SideTitles(showTitles: false),
-                            ),
-                            borderData: FlBorderData(
-                              show: true,
-                              border: Border.all(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  width: 1),
-                            ),
-                            barGroups: chartData.map((data) {
-                              final gradientColors =
-                                  data.barRods[0].y > data.barRods[1].y
-                                      ? [Colors.greenAccent, Colors.green]
-                                      : [Colors.redAccent, Colors.red];
-                              return BarChartGroupData(
-                                x: data.x,
-                                barRods: [
-                                  BarChartRodData(
-                                    y: data.barRods[0].y,
-                                    colors: [
-                                      gradientColors[0],
-                                      gradientColors[1]
-                                    ],
-                                    gradientColorStops: [0.5, 1.0],
-                                    gradientFrom: const Offset(0, 0),
-                                    gradientTo: const Offset(0, 1),
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(5)),
-                                  ),
-                                  BarChartRodData(
-                                    y: data.barRods[1].y,
-                                    colors: [
-                                      gradientColors[0].withOpacity(0.5),
-                                      gradientColors[1].withOpacity(0.5)
-                                    ],
-                                    gradientColorStops: [0.5, 1.0],
-                                    gradientFrom: const Offset(0, 0),
-                                    gradientTo: const Offset(0, 1),
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(5)),
-                                  ),
-                                ],
-                              );
-                            }).toList(),
-                            barTouchData: BarTouchData(
-                              touchTooltipData: BarTouchTooltipData(
-                                tooltipBgColor: Colors.blueGrey,
-                                getTooltipItem:
-                                    (group, groupIndex, rod, rodIndex) {
-                                  return BarTooltipItem(
-                                    rod.y.round().toString(),
-                                    TextStyle(color: Colors.white),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                   SliverToBoxAdapter(
                     child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(11.0),
+                          padding: const EdgeInsets.all(13.0),
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(18),
+                            padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
@@ -224,7 +145,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     child: Icon(
                                       Icons.attach_money,
-                                      color: Color.fromARGB(255, 36, 161, 105),
+                                      color: Color.fromARGB(255, 113, 182, 115),
                                       size: 40,
                                     ),
                                   ),
@@ -252,7 +173,7 @@ class _HomePageState extends State<HomePage> {
                                           ).format(value)}',
                                           style: TextStyle(
                                             color: Color.fromARGB(
-                                                255, 36, 161, 105),
+                                                255, 113, 182, 115),
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -326,23 +247,46 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                         ),
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: SizedBox(
+                            height: 350,
+                            child: BarChart(
+                              BarChartData(
+                                barGroups: chartData,
+                                titlesData: FlTitlesData(
+                                  leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize:
+                                          35, // Perkecil ukuran left side titles dengan mengatur reservedSize
+                                    ),
+                                  ),
+                                  bottomTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: true),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final transaction = transactionsForSelectedDate[index];
+                        final transaction = selectedDateTransactions[index];
                         Color backgroundColor = transaction.category.type == 0
                             ? Color.fromARGB(255, 219, 125, 123)
-                            : Colors.green;
+                            : const Color.fromARGB(255, 113, 182, 115);
                         IconData icon = transaction.category.type == 0
                             ? Icons.arrow_upward
                             : Icons.arrow_downward;
 
                         return Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 17, vertical: 2),
+                              horizontal: 10, vertical: 2),
                           child: Card(
                             elevation: 8,
                             shape: RoundedRectangleBorder(
@@ -397,11 +341,10 @@ class _HomePageState extends State<HomePage> {
                                                   onPressed: () {
                                                     Navigator.of(context).pop();
                                                   },
-                                                  child: Text(
-                                                    'Cancel',
-                                                    style: TextStyle(
-                                                        color: Colors.black87),
-                                                  ),
+                                                  child: Text('Cancel',
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.black87)),
                                                   style: TextButton.styleFrom(
                                                     foregroundColor:
                                                         Colors.white,
@@ -422,15 +365,15 @@ class _HomePageState extends State<HomePage> {
                                                             .transaction.id);
                                                     Navigator.of(context).pop();
                                                   },
-                                                  child: Text(
-                                                    'Delete',
-                                                    style: TextStyle(
-                                                        color: Colors.white),
-                                                  ),
+                                                  child: Text('Delete',
+                                                      style: TextStyle(
+                                                          color: Colors.white)),
                                                   style: TextButton.styleFrom(
                                                     foregroundColor:
                                                         Colors.white,
-                                                    backgroundColor: Colors.red,
+                                                    backgroundColor:
+                                                        const Color.fromARGB(
+                                                            255, 227, 119, 119),
                                                     shape:
                                                         RoundedRectangleBorder(
                                                       borderRadius:
@@ -494,7 +437,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         );
                       },
-                      childCount: transactionsForSelectedDate.length,
+                      childCount: selectedDateTransactions.length,
                     ),
                   ),
                 ],
